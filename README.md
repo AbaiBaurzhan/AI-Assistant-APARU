@@ -1,75 +1,75 @@
-# FAQ Support Assistant
+# ИИ Ассистент АПАР
 
-Intelligent FAQ search system for customer support chat automation using vector-based semantic search.
+Интеллектуальная система поиска ответов из базы знаний для автоматизации чата техподдержки на основе векторного семантического поиска.
 
-## Quick Start
+## Быстрый старт
 
-### 1. Python Setup
+### 1. Установка через Python
 
 ```bash
-# Clone repository
+# Клонируем репозиторий
 git clone <repository-url>
 cd faq-assistant
 
-# Create virtual environment
+# Создаем виртуальное окружение
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# or
+# или
 venv\Scripts\activate     # Windows
 
-# Install dependencies
+# Устанавливаем зависимости
 pip install -r requirements.txt
 
-# Start server
+# Запускаем сервер
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-### 2. Docker Setup
+### 2. Установка через Docker
 
 ```bash
-# Build image
+# Сборка образа
 docker build -t faq-assistant .
 
-# Run container
+# Запуск контейнера
 docker run -p 8000:8000 faq-assistant
 
-# Or using docker-compose
+# Или через docker-compose
 docker-compose up -d
 ```
 
 ## API Endpoints
 
-### Main Endpoints
+### Основные эндпоинты
 
-- `POST /api/v1/ask` — FAQ search
-- `POST /api/v1/feedback` — User feedback collection
-- `GET /api/v1/health` — Health check
-- `GET /docs` — Swagger documentation
+- `POST /api/v1/ask` — Поиск ответов в FAQ
+- `POST /api/v1/feedback` — Сбор обратной связи пользователей
+- `GET /api/v1/health` — Проверка состояния сервиса
+- `GET /docs` — Swagger документация
 
-## Configuration
+## Конфигурация
 
-### Environment Variables
+### Переменные окружения
 
 ```bash
-# Server port (default: 8000)
+# Порт сервера (по умолчанию: 8000)
 PORT=8000
 
-# Embedding model (default: BAAI/bge-m3)
+# Модель эмбеддингов (по умолчанию: BAAI/bge-m3)
 MODEL_NAME=BAAI/bge-m3
 
-# Knowledge base path
+# Путь к базе знаний
 DATA_DIR=./data
 ```
 
-## Monitoring
+## Мониторинг
 
-### Health Check
+### Проверка состояния
 
 ```bash
 curl http://localhost:8000/api/v1/health
 ```
 
-**Response:**
+**Ответ:**
 ```json
 {
   "status": "healthy",
@@ -78,101 +78,101 @@ curl http://localhost:8000/api/v1/health
 }
 ```
 
-## Project Structure
+## Структура проекта
 
 ```
 faq-assistant/
-├── main.py                 # FastAPI server
-├── requirements.txt        # Python dependencies
-├── Dockerfile             # Docker configuration
+├── main.py                 # FastAPI сервер
+├── requirements.txt        # Python зависимости
+├── Dockerfile             # Docker конфигурация
 ├── docker-compose.yml     # Docker Compose
-├── README.md              # Documentation
-├── data/                  # Knowledge base
-│   ├── faq.xlsx          # Source data
-│   ├── faiss.index       # Vector index
-│   └── kb.jsonl          # Knowledge base in JSON
-├── utils/                 # Utilities
-│   ├── search.py         # Search logic
-│   └── excel_converter.py # Data converter
-├── routers/               # API routes
-│   └── ask.py            # FAQ endpoints
-├── schemas/               # Pydantic models
-│   └── ask.py            # Data schemas
-└── tests/                 # Tests
+├── README.md              # Документация
+├── data/                  # База знаний
+│   ├── faq.xlsx          # Исходные данные
+│   ├── faiss.index       # Векторный индекс
+│   └── kb.jsonl          # База в JSON
+├── utils/                 # Утилиты
+│   ├── search.py         # Логика поиска
+│   └── excel_converter.py # Конвертер данных
+├── routers/               # API маршруты
+│   └── ask.py            # Эндпоинты FAQ
+├── schemas/               # Pydantic модели
+│   └── ask.py            # Схемы данных
+└── tests/                 # Тесты
 ```
 
-## Knowledge Base Updates
+## Обновление базы знаний
 
-### Adding New FAQs
+### Добавление новых FAQ
 
-1. **Update Excel file** `data/faq.xlsx`
-2. **Rebuild index:**
+1. **Обновите Excel файл** `data/faq.xlsx`
+2. **Пересоберите индекс:**
    ```bash
    python build_index.py
    ```
-3. **Restart server**
+3. **Перезапустите сервер**
 
-### Excel File Structure
+### Структура Excel файла
 
 | question | answer | id |
 |----------|--------|-----|
-| How to order a taxi? | Open the app... | q001 |
-| What is the cost? | Rate depends on... | q002 |
+| Как заказать такси? | Откройте приложение... | q001 |
+| Сколько стоит поездка? | Тариф зависит от... | q002 |
 
-## Troubleshooting
+## Устранение неполадок
 
-### Common Issues
+### Частые проблемы
 
-**1. "Address already in use" error**
+**1. Ошибка "Address already in use"**
 ```bash
-# Find process on port 8000
+# Найдите процесс на порту 8000
 lsof -i :8000
 
-# Stop process
+# Остановите процесс
 kill -9 <PID>
 ```
 
-**2. Model not loading**
+**2. Модель не загружается**
 ```bash
-# Check internet connection
-# Model downloads on first run (~500MB)
+# Проверьте подключение к интернету
+# Модель загружается при первом запуске (~500MB)
 ```
 
-**3. Knowledge base not found**
+**3. База знаний не найдена**
 ```bash
-# Ensure files exist in data/
+# Убедитесь, что файлы в data/ присутствуют
 ls -la data/
 ```
 
-## Performance
+## Производительность
 
-### Specifications
+### Характеристики
 
-- **Response time:** < 3 seconds
-- **Memory:** ~2GB (with model)
-- **CPU:** 1-2 cores
-- **Disk:** ~1GB (model + data)
+- **Время ответа:** < 3 секунд
+- **Память:** ~2GB (с моделью)
+- **CPU:** 1-2 ядра
+- **Диск:** ~1GB (модель + данные)
 
-### Scaling
+### Масштабирование
 
-- **Horizontal:** multiple instances behind load balancer
-- **Vertical:** increase RAM for larger knowledge bases
+- **Горизонтальное:** несколько инстансов за load balancer
+- **Вертикальное:** увеличение RAM для больших баз
 
-## Security
+## Безопасность
 
-### Recommendations
+### Рекомендации
 
-- Use HTTPS in production
-- Configure rate limiting
-- Restrict access by IP
-- Regularly update dependencies
+- Используйте HTTPS в продакшене
+- Настройте rate limiting
+- Ограничьте доступ по IP
+- Регулярно обновляйте зависимости
 
-## Support
+## Поддержка
 
-- **API Documentation:** http://localhost:8000/docs
+- **Документация API:** http://localhost:8000/docs
 - **Issues:** GitHub Issues
 - **Email:** support@example.com
 
-## License
+## Лицензия
 
 MIT License
