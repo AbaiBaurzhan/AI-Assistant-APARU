@@ -1,8 +1,8 @@
 """Конфигурация pytest для тестов."""
 
+import pytest
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
-import pytest
 
 
 @pytest.fixture

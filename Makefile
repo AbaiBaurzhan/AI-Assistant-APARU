@@ -47,3 +47,11 @@ install:
 # Запуск сервера
 run:
 	uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Построение индекса из Excel
+build-index:
+	python build_index.py
+
+# Конвертация Excel в векторную БД
+convert-excel:
+	python convert_excel.py

@@ -1,7 +1,7 @@
 """Базовые тесты для проверки работоспособности."""
 
-from fastapi import status
 import pytest
+from fastapi import status
 
 
 def test_health_check(client):

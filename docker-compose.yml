@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  faq-assistant:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_NAME=BAAI/bge-m3
+      - DATA_DIR=/app/data
+    volumes:
+      - ./data:/app/data:ro
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+        reservations:
+          memory: 2G
