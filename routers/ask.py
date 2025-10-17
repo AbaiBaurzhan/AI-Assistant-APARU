@@ -8,6 +8,7 @@ from typing import Any, Dict
 from fastapi import APIRouter, HTTPException, status
 
 from schemas.ask import AskRequest, AskResponse, FeedbackRequest, FeedbackResponse
+from utils.greetings import process_greeting_message
 from utils.search import search_engine
 
 # Настройка логирования
@@ -59,12 +60,30 @@ async def ask_question(request: AskRequest) -> AskResponse:
         HTTPException: При ошибках обработки
     """
     try:
+        # Обрабатываем приветствие
+        is_greeting_flag, greeting_response, main_content = process_greeting_message(
+            request.query
+        )
+
+        # Если это только приветствие - возвращаем стандартный ответ
+        if is_greeting_flag and greeting_response:
+            logger.info(f"Обработано приветствие: {request.query[:50]}...")
+            return AskResponse(
+                reply=greeting_response,
+                confidence=1.0,
+                source="greeting",
+                similar_questions=[],
+            )
+
+        # Определяем текст для поиска в FAQ
+        search_query = main_content if main_content else request.query
+
         # Проверяем, что поисковый движок инициализирован
         if not search_engine._is_initialized:
             await search_engine.initialize()
 
         # Ищем лучший ответ
-        result = await search_engine.find_best_answer(request.query)
+        result = await search_engine.find_best_answer(search_query)
 
         # Логируем запрос
         logger.info(

@@ -50,8 +50,7 @@ class CommandProcessor:
             with show_progress("Поиск ответа..."):
                 # Отправляем запрос к API
                 response = await self.client.post(
-                    f"{API_BASE_URL}/api/v1/ask",
-                    json={"query": question}
+                    f"{API_BASE_URL}/api/v1/ask", json={"query": question}
                 )
                 response.raise_for_status()
                 result = response.json()
@@ -62,7 +61,7 @@ class CommandProcessor:
                 answer=result["reply"],
                 confidence=result["confidence"],
                 source=result.get("source"),
-                similar_questions=result.get("similar_questions", [])
+                similar_questions=result.get("similar_questions", []),
             )
 
             # Сохраняем в историю
@@ -71,7 +70,7 @@ class CommandProcessor:
                 answer=result["reply"],
                 confidence=result["confidence"],
                 source=result.get("source"),
-                similar_questions=result.get("similar_questions", [])
+                similar_questions=result.get("similar_questions", []),
             )
 
         except httpx.ConnectError:
@@ -124,6 +123,7 @@ class CommandProcessor:
     def clear_command(self) -> None:
         """Обрабатывает команду clear."""
         import os
+
         os.system("clear" if os.name == "posix" else "cls")
 
     def exit_command(self) -> None:
@@ -134,6 +134,8 @@ class CommandProcessor:
     async def process_command(self, command: str) -> None:
         """
         Обрабатывает введенную команду.
+        Реализует режим "вопрос по умолчанию" - если ввод не является командой,
+        то автоматически обрабатывается как ask.
 
         Args:
             command: Команда для обработки
@@ -148,35 +150,40 @@ class CommandProcessor:
         cmd = parts[0].lower()
         args = parts[1] if len(parts) > 1 else ""
 
-        # Обрабатываем команды
-        if cmd == "ask":
-            if not args:
-                print_error("Использование: ask <вопрос>")
-                return
-            await self.ask_command(args)
+        # Список известных команд
+        known_commands = {"ask", "stats", "history", "help", "clear", "exit"}
 
-        elif cmd == "stats":
-            await self.stats_command()
+        # Если ввод начинается с известной команды - обрабатываем как команду
+        if cmd in known_commands:
+            # Обрабатываем команды
+            if cmd == "ask":
+                if not args:
+                    print_error("Использование: ask <вопрос>")
+                    return
+                await self.ask_command(args)
 
-        elif cmd == "history":
-            try:
-                limit = int(args) if args else 10
-                self.history_command(limit)
-            except ValueError:
-                print_error("Лимит должен быть числом")
+            elif cmd == "stats":
+                await self.stats_command()
 
-        elif cmd == "help":
-            self.help_command()
+            elif cmd == "history":
+                try:
+                    limit = int(args) if args else 10
+                    self.history_command(limit)
+                except ValueError:
+                    print_error("Лимит должен быть числом")
 
-        elif cmd == "clear":
-            self.clear_command()
+            elif cmd == "help":
+                self.help_command()
 
-        elif cmd == "exit":
-            self.exit_command()
+            elif cmd == "clear":
+                self.clear_command()
+
+            elif cmd == "exit":
+                self.exit_command()
 
         else:
-            print_error(f"Неизвестная команда: {cmd}")
-            print_info("Введите 'help' для списка команд")
+            # Если ввод не является командой - обрабатываем как ask (вопрос по умолчанию)
+            await self.ask_command(command)
 
     async def close(self) -> None:
         """Закрывает соединения."""

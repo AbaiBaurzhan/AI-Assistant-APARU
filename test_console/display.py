@@ -20,7 +20,8 @@ def print_header() -> None:
     """Выводит заголовок приложения."""
     header = Panel.fit(
         "[bold blue]🤖 FAQ Assistant Console v1.0[/bold blue]\n"
-        "[dim]Интерактивное тестирование ассистента техподдержки[/dim]",
+        "[dim]Интерактивное тестирование ассистента техподдержки[/dim]\n"
+        "[green]💡 Просто введите ваш вопрос - команда 'ask' не нужна![/green]",
         border_style="blue",
     )
     console.print(header)
@@ -35,7 +36,9 @@ def print_stats(stats: Dict[str, Any]) -> None:
     table.add_row("Записей в базе", str(stats.get("records", 0)))
     table.add_row("Модель", stats.get("model", "BAAI/bge-m3"))
     table.add_row("Размерность эмбеддингов", str(stats.get("embedding_dim", 1024)))
-    table.add_row("Индекс FAISS", "✅ Готов" if stats.get("index_ready") else "❌ Не готов")
+    table.add_row(
+        "Индекс FAISS", "✅ Готов" if stats.get("index_ready") else "❌ Не готов"
+    )
 
     console.print(table)
 
@@ -104,9 +107,11 @@ def print_success(message: str) -> None:
 def print_help() -> None:
     """Выводит справку по командам."""
     help_text = """
+[bold cyan]Режим работы:[/bold cyan]
+[green]Просто введите ваш вопрос - команда 'ask' не нужна![/green]
+
 [bold cyan]Доступные команды:[/bold cyan]
 
-[bold]ask <вопрос>[/bold]     - Задать вопрос ассистенту
 [bold]stats[/bold]            - Показать статистику базы знаний
 [bold]history[/bold]          - Показать историю диалогов
 [bold]clear[/bold]            - Очистить экран
@@ -114,10 +119,11 @@ def print_help() -> None:
 [bold]exit[/bold]             - Выйти из приложения
 
 [bold yellow]Примеры:[/bold yellow]
-  ask Как заказать такси?
-  ask Сколько стоит поездка?
+  Как заказать такси?        [dim](автоматически: ask Как заказать такси?)[/dim]
+  Сколько стоит поездка?     [dim](автоматически: ask Сколько стоит поездка?)[/dim]
   stats
   history
+  exit
 """
     console.print(Panel(help_text, title="📖 Справка", border_style="green"))
 
@@ -136,7 +142,11 @@ def print_history(history: List[Dict[str, Any]], limit: int = 10) -> None:
 
     for entry in history[-limit:]:
         timestamp = entry.get("timestamp", "")
-        question = entry.get("question", "")[:27] + "..." if len(entry.get("question", "")) > 30 else entry.get("question", "")
+        question = (
+            entry.get("question", "")[:27] + "..."
+            if len(entry.get("question", "")) > 30
+            else entry.get("question", "")
+        )
         confidence = f"{entry.get('confidence', 0):.3f}"
         source = entry.get("source", "N/A")
 
@@ -157,7 +167,9 @@ def show_progress(message: str) -> Progress:
 
 def print_goodbye() -> None:
     """Выводит прощальное сообщение."""
-    console.print("\n[bold blue]👋 До свидания! Спасибо за использование FAQ Assistant Console![/bold blue]")
+    console.print(
+        "\n[bold blue]👋 До свидания! Спасибо за использование FAQ Assistant Console![/bold blue]"
+    )
 
 
 def clear_screen() -> None:
