@@ -66,19 +66,38 @@ class ExcelToVectorDBConverter:
             df = pd.read_excel(file_path)
             logger.info(f"Прочитан файл {file_path}, строк: {len(df)}")
 
-            # Проверяем наличие нужных колонок
-            required_columns = ["question", "answer"]
-            missing_columns = [col for col in required_columns if col not in df.columns]
+            # Определяем названия колонок с вопросами и ответами
+            question_column = self._find_column_name(
+                df.columns, ["question", "вопрос", "Запросы пассажиров"]
+            )
+            answer_column = self._find_column_name(
+                df.columns, ["answer", "ответ", "Скрипт ответа"]
+            )
 
-            if missing_columns:
+            if not question_column:
                 raise ValueError(
-                    f"Файл должен содержать колонки: {required_columns}. "
-                    f"Отсутствуют: {missing_columns}"
+                    "Не найдена колонка с вопросами. "
+                    "Поддерживаемые названия: 'question', 'вопрос', 'Запросы пассажиров'"
                 )
+
+            if not answer_column:
+                raise ValueError(
+                    "Не найдена колонка с ответами. "
+                    "Поддерживаемые названия: 'answer', 'ответ', 'Скрипт ответа'"
+                )
+
+            logger.info(
+                f"Найдены колонки: '{question_column}' (вопросы), '{answer_column}' (ответы)"
+            )
+
+            # Переименовываем колонки в стандартные названия
+            df = df.rename(
+                columns={question_column: "question", answer_column: "answer"}
+            )
 
             # Удаляем пустые строки
             initial_count = len(df)
-            df = df.dropna(subset=required_columns)
+            df = df.dropna(subset=["question", "answer"])
             final_count = len(df)
 
             if initial_count != final_count:
@@ -98,6 +117,22 @@ class ExcelToVectorDBConverter:
         except Exception as e:
             logger.error(f"Ошибка чтения файла {file_path}: {e}")
             raise
+
+    def _find_column_name(self, columns: pd.Index, possible_names: list) -> str:
+        """
+        Находит название колонки из списка возможных названий.
+
+        Args:
+            columns: Индекс колонок DataFrame
+            possible_names: Список возможных названий колонки
+
+        Returns:
+            Найденное название колонки или пустая строка
+        """
+        for name in possible_names:
+            if name in columns:
+                return name
+        return ""
 
     def normalize_text(self, text: str) -> str:
         """
@@ -291,4 +326,3 @@ async def convert_excel_to_vector_db(
     """
     converter = ExcelToVectorDBConverter(model_name)
     return await converter.convert_excel_to_vector_db(excel_file, output_dir)
-

@@ -1,5 +1,85 @@
 # Примеры API запросов
 
+## 🤖 Обработка приветствий
+
+### Обычные приветствия
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "здравствуйте"}'
+```
+
+**Ответ:**
+
+```json
+{
+  "reply": "Здравствуйте! Благодарим за ваше обращение. Напишите свои вопрос. Например: Какие преимущества АПАРУ ?",
+  "confidence": 1.0,
+  "source": "greeting",
+  "similar_questions": []
+}
+```
+
+### Приветствия с опечатками (Fuzzy Matching)
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "добрй ден"}'
+```
+
+**Ответ:**
+
+```json
+{
+  "reply": "Здравствуйте! Благодарим за ваше обращение. Напишите свои вопрос. Например: Какие преимущества АПАРУ ?",
+  "confidence": 1.0,
+  "source": "greeting",
+  "similar_questions": []
+}
+```
+
+### Приветствие + вопрос
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "здраствуйте, как заказать такси?"}'
+```
+
+**Ответ:**
+
+```json
+{
+  "reply": "Откройте приложение и нажмите кнопку 'Заказ'",
+  "confidence": 0.85,
+  "source": "q001",
+  "similar_questions": []
+}
+```
+
+## 📊 Fallback приветствие
+
+### Вопросы с низкой уверенностью
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "абвгд"}'
+```
+
+**Ответ:**
+
+```json
+{
+  "reply": "Здравствуйте! Благодарим за ваше обращение. Напишите свои вопрос. Например: Какие преимущества АПАРУ ?",
+  "confidence": 1.0,
+  "source": "fallback_greeting",
+  "similar_questions": []
+}
+```
+
 ## 🔍 Поиск ответов в FAQ
 
 ### Запрос
@@ -95,32 +175,32 @@ curl -X GET "http://localhost:8000/api/v1/health"
 ### Axios
 
 ```javascript
-import axios from 'axios';
+import axios from "axios";
 
-const FAQ_API_BASE = 'http://localhost:8000/api/v1';
+const FAQ_API_BASE = "http://localhost:8000/api/v1";
 
 // Поиск ответа
 async function askQuestion(question) {
   try {
     const response = await axios.post(`${FAQ_API_BASE}/ask`, {
-      query: question
+      query: question,
     });
 
     const { reply, confidence, source, similar_questions } = response.data;
 
     if (confidence >= 0.8) {
       // Показать готовый ответ
-      return { type: 'answer', reply, source };
+      return { type: "answer", reply, source };
     } else if (confidence >= 0.6) {
       // Показать похожие вопросы
-      return { type: 'clarify', reply, similar_questions };
+      return { type: "clarify", reply, similar_questions };
     } else {
       // Передать оператору
-      return { type: 'operator' };
+      return { type: "operator" };
     }
   } catch (error) {
-    console.error('FAQ API error:', error);
-    return { type: 'operator' }; // Fallback на оператора
+    console.error("FAQ API error:", error);
+    return { type: "operator" }; // Fallback на оператора
   }
 }
 
@@ -130,10 +210,10 @@ async function sendFeedback(query, answerId, feedback) {
     await axios.post(`${FAQ_API_BASE}/feedback`, {
       query,
       answer_id: answerId,
-      feedback
+      feedback,
     });
   } catch (error) {
-    console.error('Feedback error:', error);
+    console.error("Feedback error:", error);
   }
 }
 ```
@@ -144,12 +224,12 @@ async function sendFeedback(query, answerId, feedback) {
 // Поиск ответа
 async function askQuestion(question) {
   try {
-    const response = await fetch('http://localhost:8000/api/v1/ask', {
-      method: 'POST',
+    const response = await fetch("http://localhost:8000/api/v1/ask", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query: question })
+      body: JSON.stringify({ query: question }),
     });
 
     if (!response.ok) {
@@ -159,8 +239,8 @@ async function askQuestion(question) {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('FAQ API error:', error);
-    return { type: 'operator' };
+    console.error("FAQ API error:", error);
+    return { type: "operator" };
   }
 }
 ```
@@ -267,14 +347,17 @@ async function handleUserMessage(message) {
       addFeedbackButtons(message, faqResponse.source);
     } else if (faqResponse.confidence >= 0.6) {
       // Средняя уверенность - просим уточнить
-      showClarificationRequest(faqResponse.reply, faqResponse.similar_questions);
+      showClarificationRequest(
+        faqResponse.reply,
+        faqResponse.similar_questions
+      );
     } else {
       // Низкая уверенность - передаем оператору
       transferToOperator(message);
     }
   } catch (error) {
     // При ошибке API передаем оператору
-    console.error('FAQ service error:', error);
+    console.error("FAQ service error:", error);
     transferToOperator(message);
   } finally {
     hideLoadingIndicator();
@@ -287,24 +370,25 @@ async function handleUserMessage(message) {
 ```javascript
 // Настройка HTTP клиента
 const FAQ_CLIENT = axios.create({
-  baseURL: 'http://localhost:8000/api/v1',
+  baseURL: "http://localhost:8000/api/v1",
   timeout: 5000, // 5 секунд
   headers: {
-    'Content-Type': 'application/json'
-  }
+    "Content-Type": "application/json",
+  },
 });
 
 // Retry логика
 async function askQuestionWithRetry(question, maxRetries = 2) {
   for (let i = 0; i < maxRetries; i++) {
     try {
-      const response = await FAQ_CLIENT.post('/ask', { query: question });
+      const response = await FAQ_CLIENT.post("/ask", { query: question });
       return response.data;
     } catch (error) {
       if (i === maxRetries - 1) {
         throw error; // Последняя попытка
       }
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Ждем 1 сек
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Ждем 1 сек
     }
   }
 }
+```

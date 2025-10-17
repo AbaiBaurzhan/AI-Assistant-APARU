@@ -8,7 +8,11 @@ from typing import Any, Dict
 from fastapi import APIRouter, HTTPException, status
 
 from schemas.ask import AskRequest, AskResponse, FeedbackRequest, FeedbackResponse
-from utils.greetings import process_greeting_message
+from utils.greetings import (
+    get_fallback_greeting,
+    process_greeting_message,
+    should_use_fallback_greeting,
+)
 from utils.search import search_engine
 
 # Настройка логирования
@@ -84,6 +88,19 @@ async def ask_question(request: AskRequest) -> AskResponse:
 
         # Ищем лучший ответ
         result = await search_engine.find_best_answer(search_query)
+
+        # Проверяем, нужно ли использовать fallback приветствие
+        if should_use_fallback_greeting(result["confidence"]):
+            logger.info(
+                f"Низкая уверенность ({result['confidence']:.3f}), "
+                f"используем fallback приветствие для: {request.query[:50]}..."
+            )
+            return AskResponse(
+                reply=get_fallback_greeting(),
+                confidence=1.0,
+                source="fallback_greeting",
+                similar_questions=[],
+            )
 
         # Логируем запрос
         logger.info(

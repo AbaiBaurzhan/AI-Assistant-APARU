@@ -20,7 +20,9 @@ async def main() -> None:
         # Проверяем существование файла FAQ
         if not Path(FAQ_FILE).exists():
             logger.error(f"Файл {FAQ_FILE} не найден")
-            logger.info("Создайте Excel файл с колонками 'question' и 'answer'")
+            logger.info("Создайте Excel файл с колонками:")
+            logger.info("  Для вопросов: 'question', 'вопрос' или 'Запросы пассажиров'")
+            logger.info("  Для ответов: 'answer', 'ответ' или 'Скрипт ответа'")
             return
 
         logger.info(f"Начинаем построение индекса из файла: {FAQ_FILE}")
